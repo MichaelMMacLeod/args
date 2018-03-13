@@ -2,8 +2,7 @@
 
 (defpackage :macleod.args
   (:use :common-lisp)
-  (:export :with-arg
-           :with-arg?))
+  (:export :with-arg))
 
 (in-package :macleod.args)
 

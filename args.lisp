@@ -2,33 +2,34 @@
 
 (defpackage :macleod.args
   (:use :common-lisp)
-  (:export :with-arg))
+  (:export :with-arg
+           :with-arg?))
 
 (in-package :macleod.args)
 
-;;; Drops elements off the start of xs until it reaches str
-(defun drop-until-string= (str xs)
-  (loop for x on xs
-        when (string= str (car x))
-        return x))
-
-;;; Matches xs against arg-list, binding any symbols in arg-list.
+;;; Matches args against args-match, binding symbols when appropriate.
 ;;;
-;;; The following initializes `topic' with the string "my-command"
+;;; (with-match '("--help" "my-command")
+;;;              ("--help" command-name)
+;;;   (print command-name)) ; prints "my-command"
 ;;;
-;;;     (with-match '("--help" "my-command") ("--help" topic)
-;;;       (format t "Here's some help with ~a~%" topic))
-(defmacro with-match (xs arg-list &body body)
-  (let* ((arg-match (car arg-list))
-         (params-match (cdr arg-list))
-         (params (drop-until-string= arg-match (eval xs))))
-    (if params
-      `(let ,(loop for param in (cdr params)
-                   for param-match in params-match
-                   collect `(,param-match ,param))
-         ,@body))))
+;;; nil if the lists do not line up or match properly.
+(defmacro with-match (args args-match &body body)
+  (block outer
+    `(let ,(loop with matches = 0
+                 for arg in (eval args)
+                 for arg-match in args-match
+                 if (symbolp arg-match)
+                   collect `(,arg-match ,arg) into xs and
+                   do (incf matches)
+                 do (and (stringp arg-match) (string= arg-match arg)
+                         (incf matches))
+                 finally (if (= matches (length args-match))
+                           (return xs)
+                           (return-from outer nil)))
+       ,@body)))
 
-;;; Matches command line arguments against arg-list, see `with-match' for details.
-(defmacro with-arg (arg-list &body body)
-  `(with-match sb-ext:*posix-argv* ,arg-list
+;;; Automatically supplies command line arguments to with-match
+(defmacro with-arg (args-match &body body)
+  `(with-match (cdr sb-ext:*posix-argv*) ,args-match
      ,@body))

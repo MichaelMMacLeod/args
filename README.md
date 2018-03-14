@@ -2,28 +2,14 @@
 Provides the macro `with-arg' to help manage command line arguments
 
 ```
-$ cat test
-#!/bin/sbcl --script
+$ sbcl --load args.lisp --eval "(in-package :macleod.args)"
+This is SBCL 1.4.0, an implementation of ANSI Common Lisp.
+...
+* (setf sb-ext:*posix-argv* '("sbcl" "Hello," "swap-between" "World!"))
 
-(in-package :cl-user)
-
-(load "args.lisp")
-
-(defpackage :macleod.test
-  (:use :common-lisp
-        :macleod.args))
-
-(in-package :macleod.test)
-
-(with-arg ("--test-two" sym1 sym2)
-  (format t "~a ~a~%" sym1 sym2))
-
-(with-arg ("--ok")
-  (with-arg ("--ok-message" message)
-    (format t "ok-message: ~a~%" message)))
-$ ./test --test-two a b
-a b
-$ ./test --ok-message "Hello, world!"
-$ ./test --ok-message "Hello, world!" --ok
-ok-message: Hello, world!
+("sbcl" "Hello," "swap-between" "World!")
+* (with-args (sym1 "swap-between" sym2)
+    (format t "~a <-- --> ~a~%" sym2 sym1))
+World! <-- --> Hello,
+NIL
 ```

@@ -1,5 +1,5 @@
 # args
-Provides the macro `with-arg' to help manage command line arguments
+Provides the macro `with-args' to help manage command line arguments
 
 ```
 $ sbcl --load args.lisp --eval "(in-package :macleod.args)"

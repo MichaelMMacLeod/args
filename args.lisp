@@ -6,6 +6,24 @@
 
 (in-package :macleod.args)
 
+(defun with-match-% (x match)
+  (cond ((stringp match)
+         (string= x match))
+        ((null match) nil)
+        (t `(,match ',x))))
+
+(defmacro with-matches-% (xs matches &body body)
+  (setf xs (eval xs))
+  (setf matches (eval matches))
+  (let* ((forms (loop for i upfrom 0
+                      for x in xs
+                      collect (with-match-% x (nth i matches))))
+         (forms-matched (remove-if #'null forms))
+         (let-pairs (remove 't forms-matched)))
+    (if (>= (length forms-matched) (length matches))
+      `(let ,let-pairs
+         ,@body))))
+
 ;;; Matches args against args-match, binding symbols when appropriate.
 ;;;
 ;;; (with-matches '("--help" "my-command")
